@@ -1,6 +1,6 @@
 # .env 中文填写说明
 
-首次部署时，把仓库的 `.env.example` 复制成同目录的 `.env`。授权地址、小雅地址和 NanShare 地址已经填好，普通客户只需填写密码设置和授权码；免费模式下授权码可以不填。模板中的注释均为中文。
+首次部署时，把仓库的 `.env.example` 复制成同目录的 `.env`。授权地址已经填好；小雅解析默认关闭，需要时填写解析入口和可信跳转源。免费模式下授权码可以不填。模板中的注释均为中文。
 
 ## 1. 获取配置
 
@@ -27,20 +27,22 @@ Docker 的 `pull` 命令只下载镜像，不会生成宿主机 `.env`。上面�
 
 是否免费由授权服务决定，留空授权码本身不会切换模式，也不会跳过授权校验。免费模式仍需能连接授权服务。
 
-## 3. 已填好的地址
+## 3. 授权地址与小雅解析
 
 ```dotenv
 # 授权服务地址，通常不需要修改
 LICENSE_SERVER_URL=https://tl.macacaaca.top
-# 小雅服务地址
-XIAOYA_URL=http://172.18.0.1:5678
-# NanShare 服务地址
-NANSHARE_URL=http://172.18.0.1:8115
+# 小雅解析入口：以下示例仅适用于与小雅同机的 Linux host 网络
+XIAOYA_URL=http://127.0.0.1:5678
+# 额外可信跳转源：按实际小雅容器 IP 填写，不能包含 /d/ 路径
+XIAOYA_REDIRECT_ORIGINS=http://172.17.0.2:45678
 ```
 
-环境变量区分大小写，必须使用上面的大写名称，不要改为 `xiaoya_url` 或 `NanShare_url`。Compose 对这三个变量同时设置了默认值，未配置或留空时仍使用上面的地址。修改 `.env` 后执行 `docker compose up -d`，让 Compose 重建配置发生变化的容器。
+环境变量区分大小写。Compose 显式传递 `XIAOYA_URL` 和 `XIAOYA_REDIRECT_ORIGINS`，默认均为空。修改 `.env` 后需用相同的 Compose 文件组合执行 `up -d` 重建应用容器；`restart` 不会更新环境变量。NanShare 的 `NANSHARE_URL` 仍是单独的可选配置，当前 Compose 模板不自动注入。
 
-`172.18.0.1` 是内网地址，客户主机需要确保 go-emby 容器能访问该地址的 5678 和 8115 端口。如果客户 Docker 网络或上游服务地址不同，请改成容器实际可访问的小雅和 NanShare 地址。预填地址不会自动安装这两个服务。
+解析器最多请求 5 个可信地址，总超时 40 秒。允许同源相对跳转；跨源解析仅限 `XIAOYA_REDIRECT_ORIGINS` 中列出的完整源（协议、主机、端口）。遇到最终外部地址即返回客户端，不请求 CDN 视频正文。未知内网跳转、循环、超限和上游错误返回 502，不向客户端泄露内部跳转地址。
+
+仅修改解析代码不能解决容器网络隔离：入口和中间跳转地址必须都能从 go-emby 访问。无需修改小雅的同机部署步骤见 [小雅连续跳转与 fork 镜像部署](docs/xiaoya-redirects.md)。
 
 ## 4. 启动与访问
 
@@ -59,6 +61,7 @@ docker compose ps
 | 变量 | 默认值与说明 |
 | --- | --- |
 | `IMAGE_TAG` | `latest`，需要固定版本时再修改。 |
+| `IMAGE_REPOSITORY` | 默认上游镜像仓库；自行构建 fork 时必须设置为实际构建的镜像名，应用和 schema-prepare 使用相同镜像。 |
 | `HTTP_PORT` | `8097`，宿主机端口冲突时修改。 |
 | `MEDIA_PATH` | `./media`，宿主机媒体目录，必须提前存在。 |
 | `LICENSE_CA_FILE` | 留空，使用系统信任的公共证书；私有 CA 场景将证书放入 `secrets/license-ca.crt`，填写 `/run/secrets/license-ca.crt`。 |

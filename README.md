@@ -4,6 +4,8 @@ Go Emby是用go语言编写的 Emby 兼容媒体服务器，提供 Web 管理界
 
 支持 **Linux x64 / amd64** 和 **ARM64 / aarch64**。
 
+本 fork 支持在 go-emby 服务端解析小雅的多级内部跳转，无需修改小雅 Nginx。请先阅读 [fork 构建与小雅解析部署说明](docs/xiaoya-redirects.md)；默认 Compose 镜像仍是上游镜像，只有构建并选择 fork 镜像才包含此修复。
+
 ## 功能介绍
 
 - Emby 兼容接口，可连接常用 Emby 客户端

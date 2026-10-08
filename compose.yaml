@@ -48,7 +48,7 @@ services:
   # 每次升级在主服务启动前自动检查/补齐当前版本所需 schema。
   # 该服务执行完成即退出，不常驻、不占用运行期 CPU/内存。
   schema-prepare:
-    image: ghcr.io/sd87671067/go-emby:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REPOSITORY:-ghcr.io/sd87671067/go-emby}:${IMAGE_TAG:-latest}
     command: ["--prepare-schema"]
     restart: "no"
 
@@ -75,7 +75,7 @@ services:
   # ==========================================================
 
   go-emby:
-    image: ghcr.io/sd87671067/go-emby:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REPOSITORY:-ghcr.io/sd87671067/go-emby}:${IMAGE_TAG:-latest}
     restart: unless-stopped
 
     # 默认以 root 身份运行，避免宿主机媒体目录由 root:root 创建时
@@ -104,6 +104,10 @@ services:
       LICENSE_CA_FILE: ${LICENSE_CA_FILE:-}
 
       PUBLIC_URL: ${PUBLIC_URL:-}
+
+      XIAOYA_URL: ${XIAOYA_URL:-}
+
+      XIAOYA_REDIRECT_ORIGINS: ${XIAOYA_REDIRECT_ORIGINS:-}
 
       BOOTSTRAP_API_KEY: ${BOOTSTRAP_API_KEY:-}
 
